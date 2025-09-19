@@ -15,12 +15,43 @@ cloudinary.config({
   api_secret: process.env.CLOUD_API_SECRET,
 });
 
-// --- Middleware ---
+// --- CORS configuration  ---
+const allowedOrigins = [
+  "https://jmandmj.vercel.app",
+  "https://media-uploader-backend.vercel.app",
+  "http://localhost:3001",
+  "http://localhost:5173", // Vite dev port
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        console.log(`CORS blocked origin: ${origin}`);
+        return callback(new Error(`Not allowed by CORS: ${origin}`));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    credentials: true,
+    optionsSuccessStatus: 200, // Support legacy browsers
+  })
+);
+
+// --- Other Middleware ---
 app.use(express.json());
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-app.use(cors());
+// --- Health check endpoint ---
+app.get("/", (req, res) => {
+  res.json({ message: "Media uploader backend is running!" });
+});
 
 // --- Routes ---
 
@@ -75,7 +106,7 @@ app.delete("/files/:cloudinaryId(*)", async (req, res) => {
   }
 });
 
-// ✅ List files from Cloudinary
+// List files from Cloudinary
 app.get("/files", async (req, res) => {
   try {
     const { max_results = 10 } = req.query;
