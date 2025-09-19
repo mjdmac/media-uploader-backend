@@ -109,31 +109,35 @@ app.delete("/files/:cloudinaryId(*)", async (req, res) => {
 // List files from Cloudinary
 app.get("/files", async (req, res) => {
   try {
-    const { max_results = 10 } = req.query;
+    let allResources = [];
 
-    // Get images
-    const images = await cloudinary.api.resources({
-      type: "upload",
-      resource_type: "image",
-      prefix: "wedding-memories/",
-      max_results,
-    });
+    // Helper to fetch all resources for a given resource_type
+    async function fetchAll(resource_type) {
+      let resources = [];
+      let cursor = undefined;
+      do {
+        const result = await cloudinary.api.resources({
+          type: "upload",
+          resource_type,
+          prefix: "wedding-memories/",
+          max_results: 500,
+          next_cursor: cursor,
+        });
+        resources = resources.concat(result.resources);
+        cursor = result.next_cursor;
+      } while (cursor);
+      return resources;
+    }
 
-    // Get videos
-    const videos = await cloudinary.api.resources({
-      type: "upload",
-      resource_type: "video",
-      prefix: "wedding-memories/",
-      max_results,
-    });
+    const images = await fetchAll("image");
+    const videos = await fetchAll("video");
+    allResources = [...images, ...videos];
 
-    const resources = [...images.resources, ...videos.resources];
-
-    const files = resources.map(file => ({
+    const files = allResources.map((file) => ({
       url: file.secure_url,
       public_id: file.public_id,
       format: file.format,
-      resource_type: file.resource_type, // "image" or "video"
+      resource_type: file.resource_type,
       size: file.bytes,
       mimetype: file.mimetype,
       width: file.width,
