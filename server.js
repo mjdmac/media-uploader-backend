@@ -19,7 +19,7 @@ cloudinary.config({
 const allowedOrigins = [
   "https://jmandmj.vercel.app",
   "https://media-uploader-backend.vercel.app",
-  "https://my-photo-stamp-cropper.vercel.app/",
+  "https://my-stamps.vercel.app",
   "http://localhost:3001",
   "http://localhost:5173", // Vite dev port
 ];
