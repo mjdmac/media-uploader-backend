@@ -19,6 +19,7 @@ cloudinary.config({
 const allowedOrigins = [
   "https://jmandmj.vercel.app",
   "https://media-uploader-backend.vercel.app",
+  "https://my-photo-stamp-cropper.vercel.app/",
   "http://localhost:3001",
   "http://localhost:5173", // Vite dev port
 ];
@@ -67,7 +68,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     const result = await cloudinary.uploader.upload(dataURI, {
       resource_type: "auto", // Automatically detect file type (image/video)
-      folder: "wedding-memories", // Organize files in a folder
+      folder: "media", // Organize files in a folder
       use_filename: true,
       unique_filename: false,
       public_id: `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
@@ -119,7 +120,7 @@ app.get("/files", async (req, res) => {
         const result = await cloudinary.api.resources({
           type: "upload",
           resource_type,
-          prefix: "wedding-memories/",
+          prefix: "media/",
           max_results: 500,
           next_cursor: cursor,
         });
